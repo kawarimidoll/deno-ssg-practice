@@ -11,6 +11,10 @@ favicon: 🦕
 
 Hello world!
 
+```
+echo 'Hello world!'
+```
+
 +++
 
 /about:About
@@ -19,8 +23,12 @@ Hello world!
 
 Built for learning.
 
+![pikachu](https://media.giphy.com/media/xuXzcHMkuwvf2/giphy.gif)
+
 +++
 
 layout:footer
 
 deno-md-site
+
+by [kawarimidoll](https://github.com/kawarimidoll) made with ❤️
