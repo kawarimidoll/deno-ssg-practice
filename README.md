@@ -7,4 +7,5 @@
 
 Make website from md files powered by deno 🦕
 
-Inspired by this article: https://javascript.plainenglish.io/building-a-static-site-generator-with-deno-61132446353d
+Inspired by this article:
+https://javascript.plainenglish.io/building-a-static-site-generator-with-deno-61132446353d
