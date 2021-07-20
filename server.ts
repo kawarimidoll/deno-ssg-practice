@@ -1,5 +1,8 @@
 /// <reference path="./deploy.d.ts" />
 
+import mime from "https://cdn.skypack.dev/mime@2.5.2/lite?dts";
+import ky from "https://cdn.skypack.dev/ky@0.28.5?dts";
+
 async function handleRequest(request: Request) {
   const { pathname } = new URL(request.url);
 
@@ -8,15 +11,13 @@ async function handleRequest(request: Request) {
 
   const file = new URL(filename, import.meta.url);
   console.log(file);
-  const type = pathname.endsWith(".css")
-    ? "text/css"
-    : pathname.endsWith(".svg")
-    ? "image/svg+xml"
-    : "text/html";
 
-  const content = await fetch(file);
+  const ext = file.href.replace(/^.*\.([^.]+)$/, "$1");
+  const type = mime.getType(ext);
+  console.log({ pathname, ext, type });
+
   return new Response(
-    await content.text(),
+    await ky(file).text(),
     {
       headers: {
         "content-type": `${type}; charset=utf-8`,
