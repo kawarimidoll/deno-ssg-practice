@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-unused-vars
 import { Marked } from "https://deno.land/x/markdown@v2.0.0/mod.ts";
-// import { ensureFileSync } from "https://deno.land/std@0.102.0/fs/mod.ts";
+import { ensureFileSync } from "https://deno.land/std@0.102.0/fs/mod.ts";
 
 interface Page {
   path: string;
@@ -37,7 +37,7 @@ const components = content.split(COMPONENT_DELIMITER);
 const { meta: frontMatter } = Marked.parse(components[0]);
 const { title, styles, favicon } = frontMatter;
 // console.log(components);
-console.log({ title, styles, favicon });
+// console.log({ title, styles, favicon });
 
 components.forEach((component) => {
   const { content } = Marked.parse(component);
@@ -54,7 +54,7 @@ components.forEach((component) => {
   }
 });
 
-console.log({ pages, layout });
+// console.log({ pages, layout });
 
 const isHomePath = (path: string) => path === HOME_PATH;
 const getStylesheetHref = (path: string) =>
@@ -91,3 +91,13 @@ const getHtmlByPage = ({ path, name, html }: Page) => `
     ${footer}
   </body>
 </html>`;
+
+pages.forEach((page) => {
+  const { path } = page;
+  const outputDir = isHomePath(path) ? "" : path;
+  const outputPath = buildPath + outputDir + "/index.html";
+  ensureFileSync(outputPath);
+  Deno.writeTextFileSync(outputPath, getHtmlByPage(page));
+});
+Deno.writeTextFileSync(`${buildPath}/styles.css`, styles || "");
+Deno.writeTextFileSync(`${buildPath}/favicon.svg`, getFaviconSvg(favicon));

@@ -1,5 +1,5 @@
 allow:
-  - write=app.log
+  - write
   - read
   # - net
   - env
@@ -11,6 +11,11 @@ scripts:
   main:
     desc: Runs main script
     cmd: main.ts
+
+  build:
+    desc: Builds static html files and assets
+    cmd: main.ts
+    unstable: true
 
   server:
     desc: Starts local server
