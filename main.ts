@@ -31,12 +31,6 @@ const COMPONENT_DELIMITER = "+++";
 const LAYOUT_PREFIX = "layout";
 const HOME_PATH = "/home";
 const STYLESHEET_PATH = "styles.css";
-const isHomePath = (path: string) => path === HOME_PATH;
-const getStylesheetHref = (path: string) =>
-  (isHomePath(path) ? "" : "../") + STYLESHEET_PATH;
-const getFaviconSvg = (emoji?: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg"><text y="32" font-size="32">${emoji ||
-    "🦕"}</text></svg>`;
 
 const content = await Deno.readTextFile(filename);
 const components = content.split(COMPONENT_DELIMITER);
@@ -61,3 +55,39 @@ components.forEach((component) => {
 });
 
 console.log({ pages, layout });
+
+const isHomePath = (path: string) => path === HOME_PATH;
+const getStylesheetHref = (path: string) =>
+  (isHomePath(path) ? "" : "../") + STYLESHEET_PATH;
+const getFaviconSvg = (emoji?: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg"><text y="32" font-size="32">${emoji ||
+    "🦕"}</text></svg>`;
+const getNavigation = (currentPath: string) =>
+  `<div id="nav">${
+    pages.map(({ path, name }) => {
+      const href = path === HOME_PATH ? "/" : path;
+      const isSelectedPage = path === currentPath;
+      const classes = `nav-item ${isSelectedPage ? "selected" : ""}`;
+      return `<a class="${classes}" href=${href}>${name}</a>`;
+    }).join("")
+  }</div>`;
+const footer = layout.footer ? `<div id="footer">${layout.footer}</div>` : "";
+const getHtmlByPage = ({ path, name, html }: Page) => `
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>${name} | ${title}</title>
+    <link rel="stylesheet" href="${getStylesheetHref(path)}">
+    <link rel="icon" href="/favicon.svg">
+  </head>
+  <body>
+    <div id="title">
+      ${title}
+    </div>
+    ${getNavigation(path)}
+    <div id="main">
+      ${html}
+    </div>
+    ${footer}
+  </body>
+</html>`;
