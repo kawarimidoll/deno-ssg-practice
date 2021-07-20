@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-unused-vars
 import { Marked } from "https://deno.land/x/markdown@v2.0.0/mod.ts";
 import { ensureFileSync } from "https://deno.land/std@0.102.0/fs/mod.ts";
 
@@ -32,7 +31,7 @@ const LAYOUT_PREFIX = "layout";
 const HOME_PATH = "/home";
 const STYLESHEET_PATH = "styles.css";
 
-const content = await Deno.readTextFile(filename);
+const content = Deno.readTextFileSync(filename);
 const components = content.split(COMPONENT_DELIMITER);
 const { meta: frontMatter } = Marked.parse(components[0]);
 const { title, styles, favicon } = frontMatter;
