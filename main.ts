@@ -1,6 +1,10 @@
-import { Logger } from "./logger.ts";
+const [filename, buildPath = "./build"] = Deno.args;
 
-Logger.debug("This log is debug!");
-Logger.info("This log is info!");
-Logger.warning("This log is warning!");
-Logger.error("This log is error!");
+console.log(filename, buildPath);
+
+if (!filename) {
+  console.log("Please specify .md file as a source!");
+  Deno.exit(1);
+} else {
+  console.log(`Building site with '${filename}' into '${buildPath}'`);
+}
