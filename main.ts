@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-unused-vars
-import { BUILD_DIR, SOURCE_DIR } from "./config.ts";
+import { BUILD_DIR, FAVICON, SITE_NAME, SOURCE_DIR } from "./config.ts";
 import { ensureFileSync, existsSync, Marked, walkSync } from "./deps.ts";
+import { relative } from "https://deno.land/std@0.102.0/path/mod.ts";
 
 interface Page {
   path: string;
@@ -16,10 +17,6 @@ interface Layout {
 const pages: Page[] = [];
 const layout: Layout = {};
 
-// const [filename] = Deno.args;
-//
-// console.log(filename, BUILD_DIR);
-
 if (!existsSync(SOURCE_DIR)) {
   console.log(`SOURCE_DIR: '${SOURCE_DIR}' is not exists!`);
   Deno.exit(1);
@@ -34,9 +31,16 @@ for (const entry of walkSync(SOURCE_DIR)) {
   // console.log(entry);
 
   const markdown = Deno.readTextFileSync(entry.path);
-  const { meta: frontMatter, content } = Marked.parse(markdown);
-  console.log(frontMatter);
-  console.log(content);
+  const { meta, content } = Marked.parse(markdown);
+  const title = (meta.title ? `${meta.title} | ` : "") + SITE_NAME;
+  const { styles, favicon = FAVICON } = meta;
+  // console.log({ title, styles, favicon });
+  // console.log(content);
+  const relativePath = relative(SOURCE_DIR, entry.path);
+  const path = entry.name == "index.md"
+    ? relativePath.replace(/\.md$/, ".html")
+    : relativePath.replace(/\.md$/, "/index.html");
+  console.log(relativePath, "->", path);
   // const { title, styles, favicon } = frontMatter;
 }
 
