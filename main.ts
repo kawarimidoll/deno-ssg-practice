@@ -2,6 +2,7 @@
 import { BUILD_DIR, FAVICON, SITE_NAME, SOURCE_DIR } from "./config.ts";
 import { ensureFileSync, existsSync, Marked, walkSync } from "./deps.ts";
 import { relative } from "https://deno.land/std@0.102.0/path/mod.ts";
+import { extname } from "https://deno.land/std@0.102.0/path/mod.ts";
 
 interface Page {
   path: string;
@@ -28,50 +29,32 @@ for (const entry of walkSync(SOURCE_DIR)) {
   if (!entry.isFile || !entry.name.endsWith(".md")) {
     continue;
   }
-  // console.log(entry);
+  const ext = extname(entry.name);
+  const filename = entry.name.replace(ext, "");
 
   const markdown = Deno.readTextFileSync(entry.path);
   const { meta, content } = Marked.parse(markdown);
-  const title = (meta.title ? `${meta.title} | ` : "") + SITE_NAME;
-  const { styles, favicon = FAVICON } = meta;
-  // console.log({ title, styles, favicon });
+  const name = (meta.title ? `${meta.title} | ` : "") + SITE_NAME;
+  // const { styles, favicon = FAVICON } = meta;
+  // console.log({ name, styles, favicon });
   // console.log(content);
   const relativePath = relative(SOURCE_DIR, entry.path);
   const path = entry.name == "index.md"
     ? relativePath.replace(/\.md$/, ".html")
     : relativePath.replace(/\.md$/, "/index.html");
   console.log(relativePath, "->", path);
-  // const { title, styles, favicon } = frontMatter;
+
+  // const html = `<style>${styles}</style>${content}`;
+  const html = content;
+
+  if (relativePath.startsWith("layouts")) {
+    layout[filename] = html;
+  } else {
+    pages.push({ path, name, html });
+  }
 }
 
-// const COMPONENT_DELIMITER = "+++";
-// const LAYOUT_PREFIX = "layout";
-// const HOME_PATH = "/home";
-// const STYLESHEET_PATH = "styles.css";
-//
-// const content = Deno.readTextFileSync(filename);
-// const components = content.split(COMPONENT_DELIMITER);
-// const { meta: frontMatter } = Marked.parse(components[0]);
-// const { title, styles, favicon } = frontMatter;
-// // console.log(components);
-// // console.log({ title, styles, favicon });
-//
-// components.forEach((component) => {
-//   const { content } = Marked.parse(component);
-//
-//   const match = content.match(/([^\n]*)\n(.*)/s) ?? [];
-//   const [path, name] = match[1].replace(/<[^>]+>/g, "").split(":");
-//   const html = match[2].replace(/\n/g, "");
-//   // console.log({ path, name, html });
-//
-//   if (path === LAYOUT_PREFIX) {
-//     layout[name] = html;
-//   } else {
-//     pages.push({ path, name, html });
-//   }
-// });
-//
-// // console.log({ pages, layout });
+console.log({ pages, layout });
 //
 // const isHomePath = (path: string) => path === HOME_PATH;
 // const getStylesheetHref = (path: string) =>
