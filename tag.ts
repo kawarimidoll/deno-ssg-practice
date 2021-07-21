@@ -36,3 +36,18 @@ export function rawTag(
 ): string {
   return tag(tagName, {}, ...children);
 }
+
+// common-used tags
+export function div(
+  attributes: Attributes,
+  ...children: string[]
+): string {
+  return tag("div", attributes, ...children);
+}
+
+export function a(
+  attributes: Attributes,
+  ...children: string[]
+): string {
+  return tag("a", attributes, ...children);
+}

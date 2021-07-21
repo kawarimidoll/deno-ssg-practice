@@ -1,6 +1,6 @@
 import { BUILD_DIR, FAVICON, SITE_NAME, SOURCE_DIR } from "./config.ts";
 import { Layout, Page } from "./types.ts";
-import { rawTag as rh, tag as h } from "./tag.ts";
+import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
   dirname,
   domParser,
@@ -78,19 +78,15 @@ const genHtml = ({ path: currentPath, styles, favicon, title, html }: Page) =>
     ),
     rh(
       "body",
-      h(
-        "div",
+      div(
         { id: "nav" },
-        pages.map(({ path, name }) =>
-          h(
-            "a",
-            { class: `nav-item ${path === currentPath ? "selected" : ""}` },
-            name,
-          )
-        ).join(" | "),
+        pages.map(({ path, name }) => {
+          const selected = path === currentPath ? "selected" : "";
+          return a({ class: `nav-item ${selected}` }, name);
+        }).join(" | "),
       ),
-      h("div", { id: "main" }, html),
-      layout.footer ? h("div", { id: "footer" }, layout.footer) : "",
+      div({ id: "main" }, html),
+      layout.footer ? div({ id: "footer" }, layout.footer) : "",
     ),
   );
 
