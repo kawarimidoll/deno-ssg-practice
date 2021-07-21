@@ -7,6 +7,8 @@ import {
   join,
 } from "https://deno.land/std@0.102.0/path/mod.ts";
 
+import twemoji from "https://cdn.skypack.dev/twemoji@v13.1.0?dts";
+
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.12-alpha/deno-dom-wasm.ts";
 const domParser = new DOMParser();
 
@@ -60,6 +62,7 @@ for (const entry of walkSync(SOURCE_DIR)) {
     ? relativePath.replace(/\.md$/, ".html")
     : relativePath.replace(/\.md$/, "/index.html");
   console.log(relativePath, "->", output, dirname(output));
+  console.log(twemoji.convert.toCodePoint(favicon));
   const dir = dirname(output);
   const path = "/" + dir.replace(/^\.$/, "");
 
@@ -72,10 +75,6 @@ for (const entry of walkSync(SOURCE_DIR)) {
 
 console.log({ pages, layout });
 
-const getFaviconSvg = (emoji?: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg"><text y="32" font-size="32">${emoji ||
-    "🦕"}</text></svg>`;
-
 const getNavigation = (currentPath: string) =>
   `<div id="nav">${
     pages.map(({ path, name }) => {
@@ -87,13 +86,20 @@ const getNavigation = (currentPath: string) =>
 
 const footer = layout.footer ? `<div id="footer">${layout.footer}</div>` : "";
 
-const getHtmlByPage = ({ path, styles, title, html }: Page) => `
+// https://zenn.dev/catnose99/articles/3d2f439e8ed161
+const genEmojiFavicon = (favicon: string) => `
+<link rel="icon" type="image/png" href="https://twemoji.maxcdn.com/v/13.0.2/72x72/${
+  twemoji.convert.toCodePoint(favicon)
+}.png" />
+`;
+
+const getHtmlByPage = ({ path, styles, favicon, title, html }: Page) => `
 <!DOCTYPE html>
 <html>
   <head>
     <title>${title}</title>
     <style>${styles}</style>
-    <link rel="icon" href="/favicon.svg">
+    ${genEmojiFavicon(favicon)}
   </head>
   <body>
     ${getNavigation(path)}
@@ -109,5 +115,3 @@ pages.forEach((page) => {
   ensureFileSync(outputPath);
   Deno.writeTextFileSync(outputPath, getHtmlByPage(page));
 });
-// Deno.writeTextFileSync(`${BUILD_DIR}/styles.css`, styles || "");
-Deno.writeTextFileSync(`${BUILD_DIR}/favicon.svg`, getFaviconSvg());

@@ -15,6 +15,7 @@ scripts:
   build:
     desc: Builds static html files and assets
     cmd: main.ts
+    tsconfig: tsconfig.json
     unstable: true
 
   server:
