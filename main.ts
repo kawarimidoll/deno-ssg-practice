@@ -1,5 +1,5 @@
 import { BUILD_DIR, FAVICON, SITE_NAME, SOURCE_DIR } from "./config.ts";
-import { Layout, Page, TocItem } from "./types.ts";
+import { Layout, Page } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
   dirname,
@@ -56,7 +56,7 @@ for (const entry of walkSync(SOURCE_DIR)) {
 
   const title = (path === "/" ? "" : `${pageTitle || name} | `) + SITE_NAME;
 
-  const toc: TocItem[] = [];
+  const headerLinks: string[] = [];
 
   [...dom.querySelectorAll("h2,h3")].forEach((node) => {
     const elm = node as Element;
@@ -65,18 +65,18 @@ for (const entry of walkSync(SOURCE_DIR)) {
     elm.attributes.id = id;
     // nodeName is 'H2', 'H3', 'H4', 'H5', 'H6'
     const level = Number(nodeName.slice(1)) - 2;
-
-    toc.push({ level, text, href: "#" + id });
+    headerLinks.push(`${"  ".repeat(level)}- [${text}](#${id})`);
   });
-  const html = dom.body.innerHTML;
-  pages.push({ path, styles, favicon, output, title, html, name, toc });
+  const { content: toc } = Marked.parse(headerLinks.join("\n"));
+
+  const html = h("div", { id: "toc" }, toc) + dom.body.innerHTML;
+  pages.push({ path, styles, favicon, output, title, html, name });
 }
 
 // console.log({ pages, layout });
-// pages.forEach((page) => console.log(page.toc));
 
 const genHtml = (
-  { path: currentPath, styles, favicon, title, html, toc }: Page,
+  { path: currentPath, styles, favicon, title, html }: Page,
 ) =>
   "<!DOCTYPE html>" +
   rh(
@@ -103,13 +103,6 @@ const genHtml = (
           return a({ class: `nav-item ${selected}`, href: path }, name);
         }).join(" | "),
       ),
-      toc && toc[0]
-        ? h(
-          "ul",
-          { id: "toc" },
-          ...toc.map(({ text, href }) => rh("li", a({ href }, text))),
-        )
-        : "",
       div({ id: "main" }, html),
       layout.footer ? div({ id: "footer" }, layout.footer) : "",
     ),
