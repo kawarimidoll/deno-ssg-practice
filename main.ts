@@ -70,20 +70,16 @@ for (const entry of walkSync(SOURCE_DIR)) {
 
   const title = (path === "/" ? "" : `${pageTitle || name} | `) + SITE_NAME;
 
-  const headerLinks: string[] = [];
-
-  [...dom.querySelectorAll("h2,h3")].forEach((node) => {
-    const elm = node as Element;
-    const { nodeName, textContent: text } = elm;
-    const id = String(text).trim().toLowerCase().replace(/\s+/g, "-");
-    elm.attributes.id = id;
+  const headerLinks = [...dom.querySelectorAll("h2,h3")].map((node) => {
+    const { nodeName, textContent: text, attributes } = node as Element;
     // nodeName is 'H2', 'H3', 'H4', 'H5', 'H6'
     const level = Number(nodeName.slice(1)) - 2;
-    headerLinks.push(`${"  ".repeat(level)}- [${text}](#${id})`);
+    return `${"  ".repeat(level)}- [${text}](#${attributes.id})`;
   });
+
   const { content: toc } = Marked.parse(headerLinks.join("\n"));
 
-  const html = h("div", { id: "toc" }, toc) + dom.body.innerHTML;
+  const html = h("div", { id: "toc" }, toc) + content;
   pages.push({ path, styles, favicon, output, title, html, name });
 }
 
