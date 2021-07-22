@@ -24,6 +24,20 @@ if (!existsSync(SOURCE_DIR)) {
 }
 console.log(`Building site with '${SOURCE_DIR}' into '${BUILD_DIR}'`);
 
+Marked.setBlockRule(/^::: *(\w+)( *\w+)?\n([\s\S]+?)\n:::/, function (execArr) {
+  const [, channel, title, content] = execArr ?? [];
+  if (!channel) {
+    return "";
+  }
+  const html = Marked.parse(content).content;
+  switch (channel) {
+    case "details": {
+      return `<details><summary>${title}</summary>${html}</details>`;
+    }
+  }
+  return `<div class="${channel}">${html}</div>`;
+});
+
 for (const entry of walkSync(SOURCE_DIR)) {
   if (!entry.isFile || !entry.name.endsWith(".md")) {
     continue;
