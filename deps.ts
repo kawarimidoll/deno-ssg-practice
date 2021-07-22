@@ -22,7 +22,10 @@ import twemoji from "https://cdn.skypack.dev/twemoji@v13.1.0?dts";
 
 import { minifyHTML } from "https://deno.land/x/minifier@v1.1.1/mod.ts";
 
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.12-alpha/deno-dom-wasm.ts";
+import {
+  DOMParser,
+  Element,
+} from "https://deno.land/x/deno_dom@v0.1.12-alpha/deno-dom-wasm.ts";
 const domParser = new DOMParser();
 
 export {
@@ -31,6 +34,7 @@ export {
   assertThrows,
   dirname,
   domParser,
+  Element,
   ensureFileSync,
   existsSync,
   join,
