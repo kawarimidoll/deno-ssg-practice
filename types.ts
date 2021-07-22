@@ -6,6 +6,7 @@ export interface Page {
   styles: string;
   favicon: string;
   html: string;
+  meta?: { [key: string]: string };
 }
 
 export interface Layout {

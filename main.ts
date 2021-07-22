@@ -11,6 +11,7 @@ import {
   Marked,
   minifyHTML,
   relative,
+  Renderer,
   twemoji,
   walkSync,
 } from "./deps.ts";
@@ -23,6 +24,14 @@ if (!existsSync(SOURCE_DIR)) {
   Deno.exit(1);
 }
 console.log(`Building site with '${SOURCE_DIR}' into '${BUILD_DIR}'`);
+
+class MyRenderer extends Renderer {
+  heading(text: string, level: number) {
+    const id = String(text).trim().toLocaleLowerCase().replace(/\s+/g, "-");
+    return `<h${level} id="${id}">${text}</h${level}>`;
+  }
+}
+Marked.setOptions({ renderer: new MyRenderer() });
 
 Marked.setBlockRule(/^::: *(\w+)( *\w+)?\n([\s\S]+?)\n:::/, function (execArr) {
   const [, channel, title, content] = execArr ?? [];
@@ -62,6 +71,8 @@ for (const entry of walkSync(SOURCE_DIR)) {
     continue;
   }
 
+  // console.log(...markdown.matchAll(/^#+ .+\n/gm));
+
   const name = dom.getElementsByTagName("h1")[0]?.textContent || "";
   const prefix = entry.name === "index.md" ? "" : "/index";
   const output = relativePath.replace(/\.md$/, `${prefix}.html`);
@@ -83,10 +94,23 @@ for (const entry of walkSync(SOURCE_DIR)) {
   pages.push({ path, styles, favicon, output, title, html, name });
 }
 
+pages.sort((a, b) => a.path > b.path ? 1 : -1);
+pages.forEach((page, idx) => {
+  page.meta ??= {};
+  if (pages[idx - 1]) {
+    page.meta.prevPath = pages[idx - 1].path;
+    page.meta.prevName = pages[idx - 1].name;
+  }
+  if (pages[idx + 1]) {
+    page.meta.nextPath = pages[idx + 1].path;
+    page.meta.nextName = pages[idx + 1].name;
+  }
+});
+
 // console.log({ pages, layout });
 
 const genHtml = (
-  { path: currentPath, styles, favicon, title, html }: Page,
+  { path: currentPath, styles, favicon, title, html, meta = {} }: Page,
 ) =>
   "<!DOCTYPE html>" +
   rh(
@@ -114,6 +138,12 @@ const genHtml = (
         }).join(" | "),
       ),
       div({ id: "main" }, html),
+      div(
+        { id: "neighbors" },
+        meta.prevPath ? a({ href: meta.prevPath }, "< " + meta.prevName) : "",
+        meta.prevPath && meta.nextPath ? rh("span", " | ") : "",
+        meta.nextPath ? a({ href: meta.nextPath }, meta.nextName + " >") : "",
+      ),
       layout.footer ? div({ id: "footer" }, layout.footer) : "",
     ),
   );
