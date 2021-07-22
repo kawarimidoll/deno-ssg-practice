@@ -6,6 +6,13 @@ export interface Page {
   styles: string;
   favicon: string;
   html: string;
+  toc?: TocItem[];
+}
+
+export interface TocItem {
+  level: number;
+  text: string;
+  href: string;
 }
 
 export interface Layout {

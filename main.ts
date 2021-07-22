@@ -1,5 +1,5 @@
 import { BUILD_DIR, FAVICON, SITE_NAME, SOURCE_DIR } from "./config.ts";
-import { Layout, Page } from "./types.ts";
+import { Layout, Page, TocItem } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
   dirname,
@@ -53,11 +53,24 @@ for (const entry of walkSync(SOURCE_DIR)) {
   const path = "/" + dirname(output).replace(/^\.$/, "");
   const { title: pageTitle, styles, favicon = FAVICON } = meta;
 
-  const title = (pageTitle ? `${pageTitle} | ` : "") + SITE_NAME;
-  pages.push({ path, styles, favicon, output, title, html, name });
+  const title = (path === "/" ? "" : `${pageTitle || name} | `) + SITE_NAME;
+
+  const toc: TocItem[] = [...dom.querySelectorAll("h2,h3")].map((elm) => {
+    const { nodeName, textContent: text, attributes }: {
+      nodeName: string;
+      textContent: string;
+      attributes?: Record<string, string>;
+    } = elm;
+    const href = attributes?.id || "";
+    // nodeName is 'H2', 'H3', 'H4', 'H5', 'H6'
+    const level = Number(nodeName.slice(1));
+    return { level, text, href };
+  });
+  pages.push({ path, styles, favicon, output, title, html, name, toc });
 }
 
-console.log({ pages, layout });
+// console.log({ pages, layout });
+pages.forEach((page) => console.log(page.toc));
 
 const genHtml = ({ path: currentPath, styles, favicon, title, html }: Page) =>
   "<!DOCTYPE html>" +
@@ -82,7 +95,7 @@ const genHtml = ({ path: currentPath, styles, favicon, title, html }: Page) =>
         { id: "nav" },
         pages.map(({ path, name }) => {
           const selected = path === currentPath ? "selected" : "";
-          return a({ class: `nav-item ${selected}` }, name);
+          return a({ class: `nav-item ${selected}`, href: path }, name);
         }).join(" | "),
       ),
       div({ id: "main" }, html),
