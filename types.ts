@@ -3,14 +3,11 @@ export interface Page {
   name: string;
   title: string;
   output: string;
-  styles?: string;
-  favicon?: string;
   html: string;
   meta?: PageMeta;
 }
 
 export interface PageMeta {
-  title?: string;
   styles?: string;
   favicon?: string;
   prev?: string;

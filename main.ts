@@ -6,7 +6,7 @@ import {
   SITE_NAME,
   SOURCE_DIR,
 } from "./config.ts";
-import { Layout, Page } from "./types.ts";
+import { Layout, Page, PageMeta } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
   dirname,
@@ -60,7 +60,7 @@ for (const entry of walkSync(SOURCE_DIR)) {
   }
 
   const markdown = Deno.readTextFileSync(entry.path);
-  const { meta, content } = Marked.parse(markdown);
+  const { meta: frontMatter, content } = Marked.parse(markdown);
 
   // check html
   const dom = domParser.parseFromString(content, "text/html");
@@ -84,7 +84,7 @@ for (const entry of walkSync(SOURCE_DIR)) {
   const prefix = entry.name === "index.md" ? "" : "/index";
   const output = relativePath.replace(/\.md$/, `${prefix}.html`);
   const path = "/" + dirname(output).replace(/^\.$/, "");
-  const { title: pageTitle, styles, favicon = DEFAULT_FAVICON } = meta;
+  const { title: pageTitle, styles, favicon = DEFAULT_FAVICON } = frontMatter;
 
   const title = (path === "/" ? "" : `${pageTitle || name} | `) + SITE_NAME;
 
@@ -96,9 +96,10 @@ for (const entry of walkSync(SOURCE_DIR)) {
   });
 
   const { content: toc } = Marked.parse(headerLinks.join("\n"));
+  const meta: PageMeta = { styles, favicon };
 
   const html = h("div", { id: "toc" }, toc) + content;
-  pages.push({ path, styles, favicon, output, title, html, name });
+  pages.push({ path, output, title, html, name, meta });
 }
 
 const defaultSorter = (a: Page, b: Page) => a.path > b.path ? 1 : -1;
@@ -113,11 +114,11 @@ LIST_DIRECTORIES.forEach(({ dir, name, sorter }) => {
   const links = listed.map((page, idx) => {
     // generate neighbor links
     page.meta ??= {};
-    if (!page.meta.prev && pages[idx - 1]) {
-      page.meta.prev = pages[idx - 1].path;
+    if (!page.meta.prev && listed[idx - 1]) {
+      page.meta.prev = listed[idx - 1].path;
     }
-    if (!page.meta.next && pages[idx + 1]) {
-      page.meta.next = pages[idx + 1].path;
+    if (!page.meta.next && listed[idx + 1]) {
+      page.meta.next = listed[idx + 1].path;
     }
 
     return `- [${page.name}](${page.path})`;
@@ -152,47 +153,49 @@ const genNavbar = (currentPath: string) =>
   );
 
 const genHtml = (
-  { path, styles, favicon, title, html, meta = {} }: Page,
-) =>
-  "<!DOCTYPE html>" +
-  rh(
-    "html",
+  { path, html, title, meta = {} }: Page,
+) => {
+  const { styles, favicon = DEFAULT_FAVICON } = meta;
+  return "<!DOCTYPE html>" +
     rh(
-      "head",
-      rh("title", title),
-      styles ? rh("style", styles) : "",
-      h("link", {
-        // https://zenn.dev/catnose99/articles/3d2f439e8ed161
-        rel: "icon",
-        type: "image/png",
-        href: `https://twemoji.maxcdn.com/v/13.0.2/72x72/${
-          twemoji.convert.toCodePoint(favicon || DEFAULT_FAVICON)
-        }.png`,
-      }),
-    ),
-    rh(
-      "body",
-      genNavbar(path),
-      div({ id: "main" }, html),
-      div(
-        { id: "neighbors" },
-        meta.prev
-          ? a(
-            { href: meta.prev },
-            "< " + (getPageByPath(meta.prev)?.name || meta.prev),
-          )
-          : "",
-        meta.prev && meta.next ? rh("span", " | ") : "",
-        meta.next
-          ? a(
-            { href: meta.next },
-            (getPageByPath(meta.next)?.name || meta.next) + " >",
-          )
-          : "",
+      "html",
+      rh(
+        "head",
+        rh("title", title),
+        styles ? rh("style", styles) : "",
+        h("link", {
+          // https://zenn.dev/catnose99/articles/3d2f439e8ed161
+          rel: "icon",
+          type: "image/png",
+          href: `https://twemoji.maxcdn.com/v/13.0.2/72x72/${
+            twemoji.convert.toCodePoint(favicon)
+          }.png`,
+        }),
       ),
-      layout.footer ? div({ id: "footer" }, layout.footer) : "",
-    ),
-  );
+      rh(
+        "body",
+        genNavbar(path),
+        div({ id: "main" }, html),
+        div(
+          { id: "neighbors" },
+          meta.prev
+            ? a(
+              { href: meta.prev },
+              "< " + (getPageByPath(meta.prev)?.name || meta.prev),
+            )
+            : "",
+          meta.prev && meta.next ? rh("span", " | ") : "",
+          meta.next
+            ? a(
+              { href: meta.next },
+              (getPageByPath(meta.next)?.name || meta.next) + " >",
+            )
+            : "",
+        ),
+        layout.footer ? div({ id: "footer" }, layout.footer) : "",
+      ),
+    );
+};
 
 const minifyOptions = { minifyCSS: true, minifyJS: true };
 pages.forEach((page) => {
