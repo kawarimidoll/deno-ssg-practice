@@ -12,6 +12,7 @@ scripts:
     unstable: true
 
   deploy_dir:
+    # https://deno.land/x/deploy_dir
     desc: Generates server by deploy_dir
     cmd: deploy_dir build -yo server.js
 
