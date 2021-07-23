@@ -6,24 +6,23 @@ export const DEFAULT_FAVICON = "🦕";
 import { Page } from "./types.ts";
 
 interface ListDirectory {
-  name: string;
+  dir: string;
+  name?: string;
   sorter?: (a: Page, b: Page) => number;
 }
 interface NavbarLink {
   path: string;
-  name: string;
+  name?: string;
 }
 export const LIST_DIRECTORIES: ListDirectory[] = [
-  { name: "lorem" },
+  { dir: "lorem", name: "Lorem" },
 ];
 
 export const NAVBAR_LINKS: NavbarLink[] = [
   {
     path: "/about",
-    name: "About",
   },
   {
     path: "/lorem",
-    name: "Lorem",
   },
 ];

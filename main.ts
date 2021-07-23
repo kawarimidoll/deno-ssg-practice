@@ -102,8 +102,11 @@ for (const entry of walkSync(SOURCE_DIR)) {
 }
 
 const defaultSorter = (a: Page, b: Page) => a.path > b.path ? 1 : -1;
-LIST_DIRECTORIES.forEach(({ name, sorter }) => {
-  const path = "/" + name;
+LIST_DIRECTORIES.forEach(({ dir, name, sorter }) => {
+  name ||= dir;
+
+  const path = "/" + dir;
+
   const listed = pages.filter((page) => page.path.startsWith(path));
   listed.sort(sorter || defaultSorter);
 
@@ -122,11 +125,9 @@ LIST_DIRECTORIES.forEach(({ name, sorter }) => {
 
   const { content: html } = Marked.parse(links.join("\n"));
 
-  const title = `${name} | ${SITE_NAME}`;
-  const output = name + "/index.html";
-  const styles = "";
-  const favicon = DEFAULT_FAVICON;
-  pages.push({ path, styles, favicon, output, title, html, name });
+  const title = `${dir} | ${SITE_NAME}`;
+  const output = dir + "/index.html";
+  pages.push({ path, output, title, html, name });
 });
 
 // console.log(pages);
@@ -142,7 +143,10 @@ const genNavbar = (currentPath: string) =>
       { style: "display:flex;flex:1;justify-content: flex-end;" },
       NAVBAR_LINKS.map(({ path, name }) => {
         const selected = path === currentPath ? "selected" : "";
-        return a({ class: `nav-item ${selected}`, href: path }, name);
+        return a(
+          { class: `nav-item ${selected}`, href: path },
+          name || getPageByPath(path)?.name || path,
+        );
       }).join(" | "),
     ),
   );
@@ -156,13 +160,13 @@ const genHtml = (
     rh(
       "head",
       rh("title", title),
-      rh("style", styles),
+      styles ? rh("style", styles) : "",
       h("link", {
         // https://zenn.dev/catnose99/articles/3d2f439e8ed161
         rel: "icon",
         type: "image/png",
         href: `https://twemoji.maxcdn.com/v/13.0.2/72x72/${
-          twemoji.convert.toCodePoint(favicon)
+          twemoji.convert.toCodePoint(favicon || DEFAULT_FAVICON)
         }.png`,
       }),
     ),

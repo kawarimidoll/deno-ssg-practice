@@ -3,8 +3,8 @@ export interface Page {
   name: string;
   title: string;
   output: string;
-  styles: string;
-  favicon: string;
+  styles?: string;
+  favicon?: string;
   html: string;
   meta?: PageMeta;
 }
