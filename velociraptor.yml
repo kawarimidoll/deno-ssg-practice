@@ -6,34 +6,42 @@ allow:
 
 scripts:
   main:
-    desc: Runs main script
-    cmd: main.ts
-
-  build:
     desc: Builds static html files and assets
     cmd: main.ts
     tsconfig: tsconfig.json
     unstable: true
 
+  deploy_dir:
+    desc: Generates server by deploy_dir
+    cmd: deploy_dir build -yo server.js
+
+  build:
+    desc: Builds files and runs deploy_dir
+    cmd:
+      - vr main
+      - vr deploy_dir
+
   server:
     desc: Starts local server
-    cmd: deployctl run --libs="" --watch --env=.env server.ts
+    cmd: deployctl run server.js
 
   dev:
     desc: Builds files and starts server
-    cmd: vr build && vr server
+    cmd:
+      - vr build
+      - vr server
 
   deps:
     desc: Update dependencies with ensuring pass tests
     cmd: udd deps.ts --test="vr test"
 
   lint:
-    cmd: deno lint
     desc: Runs lint
+    cmd: deno lint --ignore=server.js
 
   fmt:
-    cmd: deno fmt
     desc: Runs format
+    cmd: deno fmt --ignore=server.js
 
   pre-commit:
     cmd: |
@@ -56,7 +64,7 @@ scripts:
 
   ci:
     cmd:
-      - deno lint
-      - deno fmt --check
+      - vr lint
+      - vr fmt --check
       - deno test --reload
     desc: Runs lint, check format and test
