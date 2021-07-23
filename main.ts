@@ -97,15 +97,16 @@ for (const entry of walkSync(SOURCE_DIR)) {
 pages.sort((a, b) => a.path > b.path ? 1 : -1);
 pages.forEach((page, idx) => {
   page.meta ??= {};
-  if (pages[idx - 1]) {
-    page.meta.prevPath = pages[idx - 1].path;
-    page.meta.prevName = pages[idx - 1].name;
+  if (!page.meta.prev && pages[idx - 1]) {
+    page.meta.prev = pages[idx - 1].path;
   }
-  if (pages[idx + 1]) {
-    page.meta.nextPath = pages[idx + 1].path;
-    page.meta.nextName = pages[idx + 1].name;
+  if (!page.meta.next && pages[idx + 1]) {
+    page.meta.next = pages[idx + 1].path;
   }
 });
+
+const getPageByPath = (path: string) =>
+  pages.find((page) => page.path === path);
 
 // console.log({ pages, layout });
 
@@ -140,9 +141,19 @@ const genHtml = (
       div({ id: "main" }, html),
       div(
         { id: "neighbors" },
-        meta.prevPath ? a({ href: meta.prevPath }, "< " + meta.prevName) : "",
-        meta.prevPath && meta.nextPath ? rh("span", " | ") : "",
-        meta.nextPath ? a({ href: meta.nextPath }, meta.nextName + " >") : "",
+        meta.prev
+          ? a(
+            { href: meta.prev },
+            "< " + (getPageByPath(meta.prev)?.name || meta.prev),
+          )
+          : "",
+        meta.prev && meta.next ? rh("span", " | ") : "",
+        meta.next
+          ? a(
+            { href: meta.next },
+            (getPageByPath(meta.next)?.name || meta.next) + " >",
+          )
+          : "",
       ),
       layout.footer ? div({ id: "footer" }, layout.footer) : "",
     ),

@@ -6,7 +6,16 @@ export interface Page {
   styles: string;
   favicon: string;
   html: string;
-  meta?: { [key: string]: string };
+  meta?: PageMeta;
+}
+
+export interface PageMeta {
+  title?: string;
+  styles?: string;
+  favicon?: string;
+  prev?: string;
+  next?: string;
+  date?: string;
 }
 
 export interface Layout {
