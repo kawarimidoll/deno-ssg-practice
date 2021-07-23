@@ -1,4 +1,11 @@
-import { BUILD_DIR, FAVICON, SITE_NAME, SOURCE_DIR } from "./config.ts";
+import {
+  BUILD_DIR,
+  DEFAULT_FAVICON,
+  LIST_DIRECTORY,
+  NAVBAR_LINKS,
+  SITE_NAME,
+  SOURCE_DIR,
+} from "./config.ts";
 import { Layout, Page } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
@@ -77,7 +84,7 @@ for (const entry of walkSync(SOURCE_DIR)) {
   const prefix = entry.name === "index.md" ? "" : "/index";
   const output = relativePath.replace(/\.md$/, `${prefix}.html`);
   const path = "/" + dirname(output).replace(/^\.$/, "");
-  const { title: pageTitle, styles, favicon = FAVICON } = meta;
+  const { title: pageTitle, styles, favicon = DEFAULT_FAVICON } = meta;
 
   const title = (path === "/" ? "" : `${pageTitle || name} | `) + SITE_NAME;
 
@@ -108,10 +115,21 @@ pages.forEach((page, idx) => {
 const getPageByPath = (path: string) =>
   pages.find((page) => page.path === path);
 
-// console.log({ pages, layout });
+const genNavbar = (currentPath: string) =>
+  div(
+    { id: "nav", style: "display:flex;align-items:stretch;" },
+    div({}, a({ href: "/" }, SITE_NAME)),
+    div(
+      { style: "display:flex;flex:1;justify-content: flex-end;" },
+      NAVBAR_LINKS.map(({ path, name }) => {
+        const selected = path === currentPath ? "selected" : "";
+        return a({ class: `nav-item ${selected}`, href: path }, name);
+      }).join(" | "),
+    ),
+  );
 
 const genHtml = (
-  { path: currentPath, styles, favicon, title, html, meta = {} }: Page,
+  { path, styles, favicon, title, html, meta = {} }: Page,
 ) =>
   "<!DOCTYPE html>" +
   rh(
@@ -131,13 +149,7 @@ const genHtml = (
     ),
     rh(
       "body",
-      div(
-        { id: "nav" },
-        pages.map(({ path, name }) => {
-          const selected = path === currentPath ? "selected" : "";
-          return a({ class: `nav-item ${selected}`, href: path }, name);
-        }).join(" | "),
-      ),
+      genNavbar(path),
       div({ id: "main" }, html),
       div(
         { id: "neighbors" },
