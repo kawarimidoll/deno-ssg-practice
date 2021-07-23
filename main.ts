@@ -1,7 +1,7 @@
 import {
   BUILD_DIR,
   DEFAULT_FAVICON,
-  LIST_DIRECTORY,
+  LIST_DIRECTORIES,
   NAVBAR_LINKS,
   SITE_NAME,
   SOURCE_DIR,
@@ -101,16 +101,35 @@ for (const entry of walkSync(SOURCE_DIR)) {
   pages.push({ path, styles, favicon, output, title, html, name });
 }
 
-pages.sort((a, b) => a.path > b.path ? 1 : -1);
-pages.forEach((page, idx) => {
-  page.meta ??= {};
-  if (!page.meta.prev && pages[idx - 1]) {
-    page.meta.prev = pages[idx - 1].path;
-  }
-  if (!page.meta.next && pages[idx + 1]) {
-    page.meta.next = pages[idx + 1].path;
-  }
+const defaultSorter = (a: Page, b: Page) => a.path > b.path ? 1 : -1;
+LIST_DIRECTORIES.forEach(({ name, sorter }) => {
+  const path = "/" + name;
+  const listed = pages.filter((page) => page.path.startsWith(path));
+  listed.sort(sorter || defaultSorter);
+
+  const links = listed.map((page, idx) => {
+    // generate neighbor links
+    page.meta ??= {};
+    if (!page.meta.prev && pages[idx - 1]) {
+      page.meta.prev = pages[idx - 1].path;
+    }
+    if (!page.meta.next && pages[idx + 1]) {
+      page.meta.next = pages[idx + 1].path;
+    }
+
+    return `- [${page.name}](${page.path})`;
+  });
+
+  const { content: html } = Marked.parse(links.join("\n"));
+
+  const title = `${name} | ${SITE_NAME}`;
+  const output = name + "/index.html";
+  const styles = "";
+  const favicon = DEFAULT_FAVICON;
+  pages.push({ path, styles, favicon, output, title, html, name });
 });
+
+// console.log(pages);
 
 const getPageByPath = (path: string) =>
   pages.find((page) => page.path === path);
