@@ -19,6 +19,10 @@ scripts:
     desc: Starts local server
     cmd: deployctl run --libs="" --watch --env=.env server.ts
 
+  dev:
+    desc: Builds files and starts server
+    cmd: vr build && vr server
+
   deps:
     desc: Update dependencies with ensuring pass tests
     cmd: udd deps.ts --test="vr test"
