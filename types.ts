@@ -17,3 +17,23 @@ export interface PageMeta {
 export interface Layout {
   [key: string]: string;
 }
+
+export interface ListDirectory {
+  dir: string;
+  name?: string;
+  sorter?: (a: Page, b: Page) => number;
+}
+export interface NavbarLink {
+  path: string;
+  name?: string;
+}
+export interface ConfigObject {
+  sourceDir: string;
+  buildDir: string;
+  siteName: string;
+  defaultFavicon: string;
+
+  listDirectories: ListDirectory[];
+
+  navbarLinks: NavbarLink[];
+}

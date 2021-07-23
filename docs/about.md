@@ -2,6 +2,7 @@
 title: About this Site
 styles: >
   body { color: #733aff; }
+  img { max-width: 100%; height: auto; }
 favicon: 🥳
 ---
 
@@ -9,4 +10,4 @@ favicon: 🥳
 
 Built for learning.
 
-![pikachu](https://media.giphy.com/media/xuXzcHMkuwvf2/giphy.gif)
+![Deno 1.0](https://deno.land/v1.png)

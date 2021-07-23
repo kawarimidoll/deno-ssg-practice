@@ -12,10 +12,7 @@ import {
   walkSync,
 } from "https://deno.land/std@0.102.0/fs/mod.ts";
 
-import {
-  join,
-  relative,
-} from "https://deno.land/std@0.102.0/path/mod.ts";
+import { join, relative } from "https://deno.land/std@0.102.0/path/mod.ts";
 
 import twemoji from "https://cdn.skypack.dev/twemoji@v13.1.0?dts";
 

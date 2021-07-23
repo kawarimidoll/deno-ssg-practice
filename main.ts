@@ -1,12 +1,4 @@
-import {
-  BUILD_DIR,
-  DEFAULT_FAVICON,
-  LIST_DIRECTORIES,
-  NAVBAR_LINKS,
-  SITE_NAME,
-  SOURCE_DIR,
-} from "./config.ts";
-import { Layout, Page, PageMeta } from "./types.ts";
+import { ConfigObject, Layout, Page, PageMeta } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
   domParser,
@@ -22,14 +14,26 @@ import {
   walkSync,
 } from "./deps.ts";
 
+import userConfig from "./config.ts";
+import defaultConfig from "./default.config.ts";
+
+const {
+  buildDir,
+  defaultFavicon,
+  listDirectories,
+  navbarLinks,
+  siteName,
+  sourceDir,
+}: ConfigObject = { ...defaultConfig, ...userConfig };
+
 const pages: Page[] = [];
 const layout: Layout = {};
 
-if (!existsSync(SOURCE_DIR)) {
-  console.warn(`SOURCE_DIR: '${SOURCE_DIR}' is not exists!`);
+if (!existsSync(sourceDir)) {
+  console.warn(`SOURCE_DIR: '${sourceDir}' is not exists!`);
   Deno.exit(1);
 }
-console.log(`Building site with '${SOURCE_DIR}' into '${BUILD_DIR}'`);
+console.log(`Building site with '${sourceDir}' into '${buildDir}'`);
 
 class MyRenderer extends Renderer {
   heading(text: string, level: number) {
@@ -53,7 +57,7 @@ Marked.setBlockRule(/^::: *(\w+)( *\w+)?\n([\s\S]+?)\n:::/, function (execArr) {
   return `<div class="${channel}">${html}</div>`;
 });
 
-for (const entry of walkSync(SOURCE_DIR)) {
+for (const entry of walkSync(sourceDir)) {
   if (!entry.isFile || !entry.name.endsWith(".md")) {
     continue;
   }
@@ -68,7 +72,7 @@ for (const entry of walkSync(SOURCE_DIR)) {
     continue;
   }
 
-  const relativePath = relative(SOURCE_DIR, entry.path);
+  const relativePath = relative(sourceDir, entry.path);
 
   if (relativePath.startsWith("layouts")) {
     // use filename without extensions
@@ -81,10 +85,10 @@ for (const entry of walkSync(SOURCE_DIR)) {
 
   // console.log({ relativePath });
   const path = "/" + relativePath.replace(/\.md$/, ".html");
-  const { title: pageTitle, styles, favicon = DEFAULT_FAVICON } = frontMatter;
+  const { title: pageTitle, styles, favicon = defaultFavicon } = frontMatter;
 
   const name = dom.getElementsByTagName("h1")[0]?.textContent || "";
-  const title = (path === "/" ? "" : `${pageTitle || name} | `) + SITE_NAME;
+  const title = (path === "/" ? "" : `${pageTitle || name} | `) + siteName;
 
   const headerLinks = [...dom.querySelectorAll("h2,h3")].map((node) => {
     const { nodeName, textContent: text, attributes } = node as Element;
@@ -101,7 +105,7 @@ for (const entry of walkSync(SOURCE_DIR)) {
 }
 
 const defaultSorter = (a: Page, b: Page) => a.path > b.path ? 1 : -1;
-LIST_DIRECTORIES.forEach(({ dir, name, sorter }) => {
+listDirectories.forEach(({ dir, name, sorter }) => {
   name ||= dir;
 
   if (!dir.startsWith("/")) {
@@ -126,7 +130,7 @@ LIST_DIRECTORIES.forEach(({ dir, name, sorter }) => {
 
   const { content: html } = Marked.parse(links.join("\n"));
 
-  const title = `${name} | ${SITE_NAME}`;
+  const title = `${name} | ${siteName}`;
   const path = dir + ".html";
   pages.push({ path, title, html, name });
 });
@@ -139,10 +143,10 @@ const getPageByPath = (path: string) =>
 const genNavbar = (currentPath: string) =>
   div(
     { id: "nav", style: "display:flex;align-items:stretch;" },
-    div({}, a({ href: "/" }, SITE_NAME)),
+    div({}, a({ href: "/" }, siteName)),
     div(
       { style: "display:flex;flex:1;justify-content: flex-end;" },
-      NAVBAR_LINKS.map(({ path, name }) => {
+      navbarLinks.map(({ path, name }) => {
         const selected = path === currentPath ? "selected" : "";
         return a(
           { class: `nav-item ${selected}`, href: path },
@@ -156,7 +160,7 @@ const genNavbar = (currentPath: string) =>
 const genHtml = (
   { path, html, title, meta = {} }: Page,
 ) => {
-  const { styles, favicon = DEFAULT_FAVICON } = meta;
+  const { styles, favicon = defaultFavicon } = meta;
   return "<!DOCTYPE html>" +
     rh(
       "html",
@@ -201,7 +205,7 @@ const genHtml = (
 
 const minifyOptions = { minifyCSS: true, minifyJS: true };
 pages.forEach((page) => {
-  const outputPath = join(BUILD_DIR, page.path);
+  const outputPath = join(buildDir, page.path);
   ensureFileSync(outputPath);
   Deno.writeTextFileSync(outputPath, minifyHTML(genHtml(page), minifyOptions));
 });
