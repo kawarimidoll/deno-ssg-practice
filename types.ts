@@ -2,7 +2,6 @@ export interface Page {
   path: string;
   name: string;
   title: string;
-  output: string;
   html: string;
   meta?: PageMeta;
 }

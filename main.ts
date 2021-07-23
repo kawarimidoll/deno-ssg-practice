@@ -80,12 +80,11 @@ for (const entry of walkSync(SOURCE_DIR)) {
 
   // console.log(...markdown.matchAll(/^#+ .+\n/gm));
 
-  const name = dom.getElementsByTagName("h1")[0]?.textContent || "";
-  const prefix = entry.name === "index.md" ? "" : "/index";
-  const output = relativePath.replace(/\.md$/, `${prefix}.html`);
-  const path = "/" + dirname(output).replace(/^\.$/, "");
+  // console.log({ relativePath });
+  const path = "/" + relativePath.replace(/\.md$/, ".html");
   const { title: pageTitle, styles, favicon = DEFAULT_FAVICON } = frontMatter;
 
+  const name = dom.getElementsByTagName("h1")[0]?.textContent || "";
   const title = (path === "/" ? "" : `${pageTitle || name} | `) + SITE_NAME;
 
   const headerLinks = [...dom.querySelectorAll("h2,h3")].map((node) => {
@@ -99,16 +98,18 @@ for (const entry of walkSync(SOURCE_DIR)) {
   const meta: PageMeta = { styles, favicon };
 
   const html = h("div", { id: "toc" }, toc) + content;
-  pages.push({ path, output, title, html, name, meta });
+  pages.push({ path, title, html, name, meta });
 }
 
 const defaultSorter = (a: Page, b: Page) => a.path > b.path ? 1 : -1;
 LIST_DIRECTORIES.forEach(({ dir, name, sorter }) => {
   name ||= dir;
 
-  const path = "/" + dir;
+  if (!dir.startsWith("/")) {
+    dir = "/" + dir;
+  }
 
-  const listed = pages.filter((page) => page.path.startsWith(path));
+  const listed = pages.filter((page) => page.path.startsWith(dir));
   listed.sort(sorter || defaultSorter);
 
   const links = listed.map((page, idx) => {
@@ -126,12 +127,12 @@ LIST_DIRECTORIES.forEach(({ dir, name, sorter }) => {
 
   const { content: html } = Marked.parse(links.join("\n"));
 
-  const title = `${dir} | ${SITE_NAME}`;
-  const output = dir + "/index.html";
-  pages.push({ path, output, title, html, name });
+  const title = `${name} | ${SITE_NAME}`;
+  const path = dir + ".html";
+  pages.push({ path, title, html, name });
 });
 
-// console.log(pages);
+console.log({ build: pages.map((page) => page.path).sort() });
 
 const getPageByPath = (path: string) =>
   pages.find((page) => page.path === path);
@@ -146,7 +147,8 @@ const genNavbar = (currentPath: string) =>
         const selected = path === currentPath ? "selected" : "";
         return a(
           { class: `nav-item ${selected}`, href: path },
-          name || getPageByPath(path)?.name || path,
+          name || getPageByPath(path)?.name ||
+            path.replace(/^\/(.)/, (w) => w.toLocaleUpperCase()),
         );
       }).join(" | "),
     ),
@@ -161,6 +163,7 @@ const genHtml = (
       "html",
       rh(
         "head",
+        h("meta", { charset: "utf-8" }),
         rh("title", title),
         styles ? rh("style", styles) : "",
         h("link", {
@@ -199,7 +202,7 @@ const genHtml = (
 
 const minifyOptions = { minifyCSS: true, minifyJS: true };
 pages.forEach((page) => {
-  const outputPath = join(BUILD_DIR, page.output);
+  const outputPath = join(BUILD_DIR, page.path);
   ensureFileSync(outputPath);
   Deno.writeTextFileSync(outputPath, minifyHTML(genHtml(page), minifyOptions));
 });
