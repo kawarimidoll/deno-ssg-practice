@@ -9,7 +9,6 @@ import {
 import { Layout, Page, PageMeta } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
-  dirname,
   domParser,
   Element,
   ensureFileSync,
@@ -148,7 +147,7 @@ const genNavbar = (currentPath: string) =>
         return a(
           { class: `nav-item ${selected}`, href: path },
           name || getPageByPath(path)?.name ||
-            path.replace(/^\/(.)/, (w) => w.toLocaleUpperCase()),
+            path.replace(/^\/(.)/, (_, w) => w.toLocaleUpperCase()),
         );
       }).join(" | "),
     ),

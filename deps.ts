@@ -13,7 +13,6 @@ import {
 } from "https://deno.land/std@0.102.0/fs/mod.ts";
 
 import {
-  dirname,
   join,
   relative,
 } from "https://deno.land/std@0.102.0/path/mod.ts";
@@ -32,7 +31,6 @@ export {
   assert,
   assertEquals,
   assertThrows,
-  dirname,
   domParser,
   Element,
   ensureFileSync,
