@@ -30,6 +30,7 @@ export interface NavbarLink {
 export interface ConfigObject {
   sourceDir: string;
   buildDir: string;
+  serverFile: string;
   siteName: string;
   defaultFavicon: string;
 

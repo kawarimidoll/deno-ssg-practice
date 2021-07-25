@@ -1,6 +1,7 @@
 import { ConfigObject, Layout, Page, PageMeta } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
+  deployDir,
   domParser,
   Element,
   ensureFileSync,
@@ -24,6 +25,7 @@ const {
   navbarLinks,
   siteName,
   sourceDir,
+  serverFile,
 }: ConfigObject = { ...defaultConfig, ...userConfig };
 
 const pages: Page[] = [];
@@ -209,3 +211,5 @@ pages.forEach((page) => {
   ensureFileSync(outputPath);
   Deno.writeTextFileSync(outputPath, minifyHTML(genHtml(page), minifyOptions));
 });
+
+deployDir([buildDir, "-y", "-o", serverFile]);

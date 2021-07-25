@@ -24,10 +24,13 @@ import {
 } from "https://deno.land/x/deno_dom@v0.1.12-alpha/deno-dom-wasm.ts";
 const domParser = new DOMParser();
 
+import { main as deployDir } from "https://deno.land/x/deploy_dir@v0.3.2/cli.ts";
+
 export {
   assert,
   assertEquals,
   assertThrows,
+  deployDir,
   domParser,
   Element,
   ensureFileSync,

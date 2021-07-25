@@ -5,26 +5,15 @@ allow:
   # - env
 
 scripts:
-  main:
-    desc: Builds static html files and assets
+  build:
+    desc: Builds static files and generates server
     cmd: main.ts
     tsconfig: tsconfig.json
     unstable: true
 
-  deploy_dir:
-    # https://deno.land/x/deploy_dir
-    desc: Generates server by deploy_dir
-    cmd: deploy_dir build -yo server.js
-
-  build:
-    desc: Builds files and runs deploy_dir
-    cmd:
-      - vr main
-      - vr deploy_dir
-
   server:
     desc: Starts local server
-    cmd: deployctl run server.js
+    cmd: deployctl run --watch server.js
 
   dev:
     desc: Builds files and starts server
