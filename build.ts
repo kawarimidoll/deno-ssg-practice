@@ -1,6 +1,7 @@
 import { ConfigObject, Layout, Page, PageMeta } from "./types.ts";
 import { a, div, rawTag as rh, tag as h } from "./tag.ts";
 import {
+  basename,
   deployDir,
   domParser,
   Element,
@@ -50,22 +51,17 @@ const {
   serverFile,
 }: ConfigObject = { ...defaultConfig, ...userConfig };
 
-const pages: Page[] = [];
-const layout: Layout = {};
-
 if (!(await exists(sourceDir))) {
   console.warn(`SOURCE_DIR: '${sourceDir}' is not exists!`);
   Deno.exit(1);
 }
 console.log(`Building site with '${sourceDir}' into '${buildDir}'`);
 
-export async function build() {
-  for await (const entry of walk(sourceDir)) {
-    if (!entry.isFile || !entry.name.endsWith(".md")) {
-      continue;
-    }
-
-    const markdown = Deno.readTextFileSync(entry.path);
+async function build(paths: string[]) {
+  const pages: Page[] = [];
+  const layout: Layout = {};
+  for (const entryPath of paths) {
+    const markdown = Deno.readTextFileSync(entryPath);
     const { meta: frontMatter, content } = Marked.parse(markdown);
 
     // check html
@@ -75,11 +71,11 @@ export async function build() {
       continue;
     }
 
-    const relativePath = relative(sourceDir, entry.path);
+    const relativePath = relative(sourceDir, entryPath);
 
     if (relativePath.startsWith("layouts")) {
       // use filename without extensions
-      const layoutName = entry.name.replace(/\.[^.]+$/, "");
+      const layoutName = basename(entryPath).replace(/\.[^.]+$/, "");
       layout[layoutName] = content;
       continue;
     }
@@ -216,4 +212,44 @@ export async function build() {
   }
 
   deployDir([buildDir, "-y", "-o", serverFile]);
+}
+
+// [Build a live reloader and explore Deno! 🦕 - DEV Community](https://dev.to/otanriverdi/let-s-explore-deno-by-building-a-live-reloader-j47)
+async function watchChanges(
+  paths: string | string[],
+  onChange: (event: Deno.FsEvent) => void,
+  config = { interval: 500 },
+) {
+  const watcher = Deno.watchFs(paths);
+  let reloading = false;
+
+  for await (const event of watcher) {
+    if (event.kind !== "modify" || reloading) {
+      continue;
+    }
+    reloading = true;
+    onChange(event);
+    setTimeout(() => (reloading = false), config.interval);
+  }
+}
+
+export async function run() {
+  const paths: string[] = [];
+  for await (const entry of walk(sourceDir)) {
+    if (!entry.isFile || !entry.name.endsWith(".md")) {
+      continue;
+    }
+    paths.push(entry.path);
+  }
+
+  await build(paths);
+
+  await watchChanges(paths, async (event) => {
+    console.log("File change detected.");
+    console.log(event.paths[0]);
+    console.log("Rebuilding...");
+    await build(paths);
+    console.log("Watching for changes...");
+    // setTimeout(() => console.log("Watching for changes..."), 2500);
+  });
 }

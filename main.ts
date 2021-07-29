@@ -1,3 +1,3 @@
-import { build } from "./build.ts";
+import { run } from "./build.ts";
 
-build();
+run();
