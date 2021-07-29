@@ -7,9 +7,9 @@ import {
 import { Marked, Renderer } from "https://deno.land/x/markdown@v2.0.0/mod.ts";
 
 import {
-  ensureFileSync,
-  existsSync,
-  walkSync,
+  ensureFile,
+  exists,
+  walk,
 } from "https://deno.land/std@0.102.0/fs/mod.ts";
 
 import { join, relative } from "https://deno.land/std@0.102.0/path/mod.ts";
@@ -33,13 +33,13 @@ export {
   deployDir,
   domParser,
   Element,
-  ensureFileSync,
-  existsSync,
+  ensureFile,
+  exists,
   join,
   Marked,
   minifyHTML,
   relative,
   Renderer,
   twemoji,
-  walkSync,
+  walk,
 };

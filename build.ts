@@ -4,20 +4,21 @@ import {
   deployDir,
   domParser,
   Element,
-  ensureFileSync,
-  existsSync,
+  ensureFile,
+  exists,
   join,
   Marked,
   minifyHTML,
   relative,
   Renderer,
   twemoji,
-  walkSync,
+  walk,
 } from "./deps.ts";
 
 import userConfig from "./config.ts";
 import defaultConfig from "./default.config.ts";
 
+const minifyOptions = { minifyCSS: true, minifyJS: true };
 class MyRenderer extends Renderer {
   heading(text: string, level: number) {
     const id = String(text).trim().toLocaleLowerCase().replace(/\s+/g, "-");
@@ -52,14 +53,14 @@ const {
 const pages: Page[] = [];
 const layout: Layout = {};
 
-if (!existsSync(sourceDir)) {
+if (!(await exists(sourceDir))) {
   console.warn(`SOURCE_DIR: '${sourceDir}' is not exists!`);
   Deno.exit(1);
 }
 console.log(`Building site with '${sourceDir}' into '${buildDir}'`);
 
-export function build() {
-  for (const entry of walkSync(sourceDir)) {
+export async function build() {
+  for await (const entry of walk(sourceDir)) {
     if (!entry.isFile || !entry.name.endsWith(".md")) {
       continue;
     }
@@ -205,15 +206,14 @@ export function build() {
       );
   };
 
-  const minifyOptions = { minifyCSS: true, minifyJS: true };
-  pages.forEach((page) => {
+  for (const page of pages) {
     const outputPath = join(buildDir, page.path);
-    ensureFileSync(outputPath);
+    await ensureFile(outputPath);
     Deno.writeTextFileSync(
       outputPath,
       minifyHTML(genHtml(page), minifyOptions),
     );
-  });
+  }
 
   deployDir([buildDir, "-y", "-o", serverFile]);
 }
