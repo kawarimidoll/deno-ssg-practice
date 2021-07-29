@@ -15,6 +15,7 @@ import {
   twemoji,
   walk,
 } from "./deps.ts";
+import { runServer } from "./run_server.ts";
 
 import userConfig from "./config.ts";
 import defaultConfig from "./default.config.ts";
@@ -104,6 +105,7 @@ async function build(paths: string[]) {
   }
 
   const defaultSorter = (a: Page, b: Page) => a.path > b.path ? 1 : -1;
+
   listDirectories.forEach(({ dir, name, sorter }) => {
     name ||= dir;
 
@@ -229,6 +231,8 @@ async function watchChanges(
     }
     reloading = true;
     onChange(event);
+
+    // debounce
     setTimeout(() => (reloading = false), config.interval);
   }
 }
@@ -244,12 +248,13 @@ export async function run() {
 
   await build(paths);
 
-  await watchChanges(paths, async (event) => {
-    console.log("File change detected.");
-    console.log(event.paths[0]);
-    console.log("Rebuilding...");
-    await build(paths);
-    console.log("Watching for changes...");
-    // setTimeout(() => console.log("Watching for changes..."), 2500);
-  });
+  Promise.all([
+    watchChanges(paths, async (event) => {
+      console.log("File change detected:", relative(sourceDir, event.paths[0]));
+      console.log("Rebuilding...");
+      await build(paths);
+      console.log("Watching for changes...");
+    }),
+    runServer(),
+  ]);
 }
