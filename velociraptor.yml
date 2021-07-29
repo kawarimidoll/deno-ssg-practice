@@ -27,11 +27,11 @@ scripts:
 
   lint:
     desc: Runs lint
-    cmd: deno lint --ignore=server.js
+    cmd: deno lint --ignore=server.js,build
 
   fmt:
     desc: Runs format
-    cmd: deno fmt --ignore=server.js
+    cmd: deno fmt --ignore=server.js,build
 
   pre-commit:
     cmd: |
